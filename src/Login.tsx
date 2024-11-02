@@ -1,68 +1,66 @@
+// src/Login.js
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import axios from "axios";
+
 const CLIENT_ID = "1000.NWRY2C51S8GH236LC9T9F7EJL3D1ZD";
 const REDIRECT_URI =
-  "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/"; // Redireciona para o backend
+  "https://<seu-subdomínio-ngrok>.ngrok-free.app/callback"; // Certifique-se de que esta URL inclui /callback
 
 const Login = () => {
-  const handleLogin = () => {
-    const authUrl = `https://accounts.zoho.com/oauth/v2/auth?response_type=code&client_id=${CLIENT_ID}&scope=ZohoBigin.modules.ALL&access_type=offline&redirect_uri=${encodeURIComponent(
-      REDIRECT_URI
-    )}`;
-    window.location.href = authUrl;
-  };
-
-  return (
-    <div>
-      <h1>Integração OAuth 2.0 com Bigin</h1>
-      <button onClick={handleLogin}>Login com Bigin</button>
-      <TokenComponent />
-    </div>
-  );
-};
-
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useSearchParams } from "react-router-dom";
-
-const TokenComponent = () => {
   const [searchParams] = useSearchParams();
   const [accessToken, setAccessToken] = useState("");
   const [refreshToken, setRefreshToken] = useState("");
   const [expiresIn, setExpiresIn] = useState("");
 
   useEffect(() => {
-    const authorizationCode = searchParams.get("code");
-    console.log("Authorization Code from URL:", authorizationCode); // Adicione isso para verificar
+    const access_token = searchParams.get("access_token");
+    const refresh_token = searchParams.get("refresh_token");
 
-    if (authorizationCode) {
-      getTokens(authorizationCode);
+    if (access_token && refresh_token) {
+      setAccessToken(access_token);
+      setRefreshToken(refresh_token);
+      // Opcional: Armazene os tokens no localStorage ou cookies para persistência
+      localStorage.setItem("access_token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
     }
   }, [searchParams]);
 
-  const getTokens = async (authorizationCode: any) => {
+  const handleLogin = () => {
+    const zohoAuthUrl = `https://accounts.zoho.com/oauth/v2/auth?response_type=code&client_id=${CLIENT_ID}&scope=ZohoBigin.modules.ALL&access_type=offline&redirect_uri=${encodeURIComponent(
+      REDIRECT_URI
+    )}`;
+    window.location.href = zohoAuthUrl;
+  };
+
+  const refreshTokenHandler = async () => {
     try {
-      console.log("Obtendo tokens...");
       const response = await axios.post(
-        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/get-tokens",
+        "https://<seu-subdomínio-ngrok>.ngrok-free.app/refresh-token",
         {
-          authorization_code: authorizationCode,
+          refresh_token: refreshToken,
         }
       );
-      const { access_token, refresh_token, expires_in } = response.data;
+      const { access_token, expires_in } = response.data;
 
       setAccessToken(access_token);
-      setRefreshToken(refresh_token);
       setExpiresIn(expires_in);
 
-      console.log("Access Token:", access_token);
-      console.log("Refresh Token:", refresh_token);
+      console.log("Novo Access Token:", access_token);
       console.log("Expires In:", expires_in);
+
+      // Atualize o localStorage, se estiver usando
+      localStorage.setItem("access_token", access_token);
     } catch (error: any) {
-      console.error("Erro ao obter tokens:", error.response?.data);
+      console.error("Erro ao renovar o token:", error.response?.data);
     }
   };
 
   return (
     <div>
+      <h1>Integração OAuth 2.0 com Bigin</h1>
+      <button onClick={handleLogin}>Login com Bigin</button>
+      
       {accessToken ? (
         <div>
           <p>
@@ -74,6 +72,7 @@ const TokenComponent = () => {
           <p>
             <strong>Expira em:</strong> {expiresIn} segundos
           </p>
+          <button onClick={refreshTokenHandler}>Renovar Access Token</button>
         </div>
       ) : (
         <p>Faça login para obter os tokens.</p>
@@ -81,4 +80,5 @@ const TokenComponent = () => {
     </div>
   );
 };
+
 export default Login;
