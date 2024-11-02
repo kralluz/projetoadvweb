@@ -50,7 +50,7 @@ const Callback = () => {
     fetchTokens();
   }, []);
 
-  return <div>Processando...</div>;
+  return <div>Processasndo...</div>;
 };
 
 export default Callback;
