@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <h1>Contatos da Bigin</h1>
+      <h1>Contatoss da Bigin</h1>
       <ul>
         {contacts.map((contact) => (
           <li key={contact.id}>
