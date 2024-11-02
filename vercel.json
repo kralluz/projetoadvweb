@@ -1,16 +1,8 @@
 {
-  "routes": [
-    {
-      "src": "/callback",
-      "dest": "/callback"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/dashboard"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/"
+        }
+    ]
 }
