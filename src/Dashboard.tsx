@@ -1,6 +1,7 @@
+// src/Dashboard.js
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 interface Contact {
   id: string;
@@ -16,21 +17,19 @@ const Dashboard: React.FC = () => {
     // Extrair tokens dos parâmetros da URL
     const params = new URLSearchParams(location.search);
     const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
+    const refresh_token: any = params.get("refresh_token");
 
-    // Verifique se os tokens foram obtidos corretamente
-    if (!access_token || !refresh_token) {
+    if (access_token) {
+      // Armazenar os tokens no localStorage
+      localStorage.setItem("access_token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
+
+      // Remover os tokens da URL para limpar a barra de endereços
+      window.history.replaceState({}, document.title, "/dashboard");
+    } else {
       alert("Token de acesso não encontrado.");
       window.location.href = "/";
-      return;
     }
-
-    // Armazenar os tokens no localStorage
-    localStorage.setItem("access_token", access_token);
-    localStorage.setItem("refresh_token", refresh_token);
-
-    // Remover os tokens da URL para limpar a barra de endereços
-    window.history.replaceState({}, document.title, "/dashboard");
   }, [location]);
 
   useEffect(() => {
