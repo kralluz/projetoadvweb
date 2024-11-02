@@ -32,7 +32,7 @@ const Callback = () => {
 
           const { access_token, refresh_token } = response.data;
 
-          // Aqui, armazene os tokens, por exemplo, no localStorage
+          // Armazenar tokens no localStorage
           localStorage.setItem("access_token", access_token);
           localStorage.setItem("refresh_token", refresh_token);
 

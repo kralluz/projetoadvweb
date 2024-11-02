@@ -1,5 +1,5 @@
 const CLIENT_ID = '1000.MTXU3XP2J5QT75FW2JF1743YCBBGAK';
-const REDIRECT_URI = 'https://projetoadvweb.vercel.app//callback';
+const REDIRECT_URI = 'https://projetoadvweb.vercel.app/callback';
 
 const Login = () => {
   const handleLogin = () => {
