@@ -19,18 +19,33 @@ const Login = () => {
   );
 };
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { useSearchParams } from "react-router-dom";
 
 const TokenComponent = () => {
+  const [searchParams] = useSearchParams();
   const [accessToken, setAccessToken] = useState("");
   const [refreshToken, setRefreshToken] = useState("");
   const [expiresIn, setExpiresIn] = useState("");
 
-  const getTokens = async () => {
+  useEffect(() => {
+    const authorizationCode = searchParams.get("code");
+
+    if (authorizationCode) {
+      getTokens(authorizationCode);
+    }
+  }, [searchParams]);
+
+  const getTokens = async (authorizationCode: any) => {
     try {
       console.log("Obtendo tokens...");
-      const response = await axios.post("https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/get-tokens");
+      const response = await axios.post(
+        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/get-tokens",
+        {
+          authorization_code: authorizationCode,
+        }
+      );
       const { access_token, refresh_token, expires_in } = response.data;
 
       setAccessToken(access_token);
@@ -41,34 +56,13 @@ const TokenComponent = () => {
       console.log("Refresh Token:", refresh_token);
       console.log("Expires In:", expires_in);
     } catch (error: any) {
-      console.error("Erro ao obter tokens:", error.response.data);
-    }
-  };
-
-  const refreshTokenHandler = async () => {
-    console.log("Renovando o token...");
-    try {
-      const response = await axios.post("https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/refresh-token", {
-        refresh_token: refreshToken,
-      });
-      const { access_token, expires_in } = response.data;
-
-      setAccessToken(access_token);
-      setExpiresIn(expires_in);
-
-      console.log("Novo Access Token:", access_token);
-      console.log("Expires In:", expires_in);
-    } catch (error: any) {
-      console.error("Erro ao renovar o token:", error.response.data);
+      console.error("Erro ao obter tokens:", error.response?.data);
     }
   };
 
   return (
     <div>
-      <button onClick={getTokens}>Obter Tokens</button>
-      <button onClick={refreshTokenHandler}>Renovar Access Token</button>
-
-      {accessToken && (
+      {accessToken ? (
         <div>
           <p>
             <strong>Access Token:</strong> {accessToken}
@@ -80,9 +74,10 @@ const TokenComponent = () => {
             <strong>Expira em:</strong> {expiresIn} segundos
           </p>
         </div>
+      ) : (
+        <p>Faça login para obter os tokens.</p>
       )}
     </div>
   );
 };
-
 export default Login;
