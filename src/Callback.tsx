@@ -3,7 +3,7 @@ import axios from "axios";
 
 const CLIENT_ID = "1000.03QPZ4FQUNZJOD4KR88F5NRAZV9I1E";
 const CLIENT_SECRET = "41985732bdc954f2f0d510392898166e36bced2717";
-const REDIRECT_URI = "https://zippy-moonbeam-526743.netlify.app/callback";
+const REDIRECT_URI = "https://projetoadvweb.vercel.app/callback";
 
 const Callback = () => {
   useEffect(() => {
