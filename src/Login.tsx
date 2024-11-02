@@ -31,6 +31,7 @@ const TokenComponent = () => {
 
   useEffect(() => {
     const authorizationCode = searchParams.get("code");
+    console.log("Authorization Code from URL:", authorizationCode); // Adicione isso para verificar
 
     if (authorizationCode) {
       getTokens(authorizationCode);
