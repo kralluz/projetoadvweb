@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 
 interface Contact {
   id: string;
@@ -18,19 +18,19 @@ const Dashboard: React.FC = () => {
     const access_token = params.get("access_token");
     const refresh_token = params.get("refresh_token");
 
-    if (access_token) {
-        // Armazenar os tokens no localStorage
-        localStorage.setItem("access_token", access_token);
-        if (refresh_token) {
-            localStorage.setItem("refresh_token", refresh_token);
-        }
-
-        // Remover os tokens da URL para limpar a barra de endereços
-        window.history.replaceState({}, document.title, "/dashboard");
-    } else {
-        alert("Token de acesso não encontrado.");
-        window.location.href = "/";
+    // Verifique se os tokens foram obtidos corretamente
+    if (!access_token || !refresh_token) {
+      alert("Token de acesso não encontrado.");
+      window.location.href = "/";
+      return;
     }
+
+    // Armazenar os tokens no localStorage
+    localStorage.setItem("access_token", access_token);
+    localStorage.setItem("refresh_token", refresh_token);
+
+    // Remover os tokens da URL para limpar a barra de endereços
+    window.history.replaceState({}, document.title, "/dashboard");
   }, [location]);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <h1>Contatoss da Bigin</h1>
+      <h1>Contatos da Bigin</h1>
       <ul>
         {contacts.map((contact) => (
           <li key={contact.id}>
