@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 interface Contact {
   id: string;
@@ -9,6 +10,28 @@ interface Contact {
 
 const Dashboard: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Extrair tokens dos parâmetros da URL
+    const params = new URLSearchParams(location.search);
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+
+    if (access_token) {
+        // Armazenar os tokens no localStorage
+        localStorage.setItem("access_token", access_token);
+        if (refresh_token) {
+            localStorage.setItem("refresh_token", refresh_token);
+        }
+
+        // Remover os tokens da URL para limpar a barra de endereços
+        window.history.replaceState({}, document.title, "/dashboard");
+    } else {
+        alert("Token de acesso não encontrado.");
+        window.location.href = "/";
+    }
+  }, [location]);
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -30,8 +53,6 @@ const Dashboard: React.FC = () => {
           console.error("Erro ao obter contatos:", error);
           alert("Falha ao obter contatos.");
         }
-      } else {
-        alert("Token de acesso não encontrado.");
       }
     };
 
