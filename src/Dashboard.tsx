@@ -9,8 +9,9 @@ const Dashboard = () => {
   const [accessToken, setAccessToken] = useState("");
   const [refreshToken, setRefreshToken] = useState("");
   const [expiresIn, setExpiresIn] = useState("");
-  const [users, setUsers] = useState<any>([]);
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Estado para mostrar carregamento
 
   useEffect(() => {
     // Função para extrair os parâmetros da URL
@@ -30,7 +31,7 @@ const Dashboard = () => {
       setRefreshToken(refresh_token);
       setExpiresIn(expires_in);
 
-      // Opcional: Armazene os tokens no localStorage para persistência
+      // Armazene os tokens no localStorage para persistência
       localStorage.setItem("access_token", access_token);
       localStorage.setItem("refresh_token", refresh_token);
       localStorage.setItem("expires_in", expires_in);
@@ -43,9 +44,12 @@ const Dashboard = () => {
       return;
     }
 
+    setLoading(true);
+    setError("");
+
     try {
       const response = await axios.get(
-        "https://www.zohoapis.com/bigin/v2/users?page=1&per_page=5&type=DeactiveUsers",
+        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/deactive-users",
         {
           headers: {
             Authorization: `Zoho-oauthtoken ${accessToken}`,
@@ -56,7 +60,9 @@ const Dashboard = () => {
       setUsers(response.data.data); // Ajuste conforme a estrutura da resposta da API
     } catch (err: any) {
       console.error("Erro ao buscar usuários deativos:", err.response?.data);
-      setError("Falha ao buscar usuários deativos.");
+      setError("Falha ao buscar usuários de ativos.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,7 +80,9 @@ const Dashboard = () => {
           <p>
             <strong>Expira em:</strong> {expiresIn} segundos
           </p>
-          <button onClick={fetchDeactiveUsers}>Buscar Usuários Deativos</button>
+          <button onClick={fetchDeactiveUsers} disabled={loading}>
+            {loading ? "Carregando..." : "Buscar Usuários Deativos"}
+          </button>
 
           {error && <p style={{ color: "red" }}>{error}</p>}
 
