@@ -1,73 +1,97 @@
 // src/Dashboard.js
-import { useEffect, useState } from "react";
-import axios from "axios";
+
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 
-interface Contact {
-  id: string;
-  Name: string;
-  Email: string;
-}
-
-const Dashboard: React.FC = () => {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+const Dashboard = () => {
   const location = useLocation();
+  const [accessToken, setAccessToken] = useState("");
+  const [refreshToken, setRefreshToken] = useState("");
+  const [expiresIn, setExpiresIn] = useState("");
+  const [users, setUsers] = useState<any>([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Extrair tokens dos parâmetros da URL
-    const params = new URLSearchParams(location.search);
-    const access_token = params.get("access_token");
-    const refresh_token: any = params.get("refresh_token");
-
-    if (access_token) {
-      // Armazenar os tokens no localStorage
-      localStorage.setItem("access_token", access_token);
-      localStorage.setItem("refresh_token", refresh_token);
-
-      // Remover os tokens da URL para limpar a barra de endereços
-      window.history.replaceState({}, document.title, "/dashboard");
-    } else {
-      alert("Token de acesso não encontrado.");
-      window.location.href = "/";
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchContacts = async () => {
-      const accessToken = localStorage.getItem("access_token");
-
-      if (accessToken) {
-        try {
-          const response = await axios.get<{ data: Contact[] }>(
-            "https://www.bigin.com/api/v2/contacts",
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            }
-          );
-
-          setContacts(response.data.data);
-        } catch (error) {
-          console.error("Erro ao obter contatos:", error);
-          alert("Falha ao obter contatos.");
-        }
-      }
+    // Função para extrair os parâmetros da URL
+    const getQueryParams = () => {
+      const params = new URLSearchParams(location.search);
+      return {
+        access_token: params.get("access_token"),
+        refresh_token: params.get("refresh_token"),
+        expires_in: params.get("expires_in"),
+      };
     };
 
-    fetchContacts();
-  }, []);
+    const { access_token, refresh_token, expires_in }: any = getQueryParams();
+
+    if (access_token && refresh_token) {
+      setAccessToken(access_token);
+      setRefreshToken(refresh_token);
+      setExpiresIn(expires_in);
+
+      // Opcional: Armazene os tokens no localStorage para persistência
+      localStorage.setItem("access_token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
+      localStorage.setItem("expires_in", expires_in);
+    }
+  }, [location.search]);
+
+  const fetchDeactiveUsers = async () => {
+    if (!accessToken) {
+      setError("Access Token não disponível.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        "https://www.zohoapis.com/bigin/v2/users?page=1&per_page=5&type=DeactiveUsers",
+        {
+          headers: {
+            Authorization: `Zoho-oauthtoken ${accessToken}`,
+          },
+        }
+      );
+
+      setUsers(response.data.data); // Ajuste conforme a estrutura da resposta da API
+    } catch (err: any) {
+      console.error("Erro ao buscar usuários deativos:", err.response?.data);
+      setError("Falha ao buscar usuários deativos.");
+    }
+  };
 
   return (
     <div>
-      <h1>Contatos da Bigin</h1>
-      <ul>
-        {contacts.map((contact) => (
-          <li key={contact.id}>
-            {contact.Name} - {contact.Email}
-          </li>
-        ))}
-      </ul>
+      <h2>Dashboard</h2>
+      {accessToken ? (
+        <div>
+          <p>
+            <strong>Access Token:</strong> {accessToken}
+          </p>
+          <p>
+            <strong>Refresh Token:</strong> {refreshToken}
+          </p>
+          <p>
+            <strong>Expira em:</strong> {expiresIn} segundos
+          </p>
+          <button onClick={fetchDeactiveUsers}>Buscar Usuários Deativos</button>
+
+          {error && <p style={{ color: "red" }}>{error}</p>}
+
+          {users.length > 0 && (
+            <div>
+              <h3>Usuários Deativos:</h3>
+              <ul>
+                {users.map((user: any) => (
+                  <li key={user.id}>{user.name}</li> // Ajuste conforme a estrutura do usuário
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p>Faça login para obter os tokens.</p>
+      )}
     </div>
   );
 };
