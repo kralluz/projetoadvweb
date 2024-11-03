@@ -1,3 +1,5 @@
+// src/Dashboard.js
+
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
@@ -9,7 +11,9 @@ const Dashboard = () => {
   const [expiresIn, setExpiresIn] = useState("");
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Estado para mostrar carregamento
+  const [loadingFetch, setLoadingFetch] = useState(false); // Estado para mostrar carregamento ao buscar usuários
+  const [loadingCreate, setLoadingCreate] = useState(false); // Estado para mostrar carregamento ao criar usuário
+  const [createSuccess, setCreateSuccess] = useState(""); // Mensagem de sucesso ao criar usuário
 
   useEffect(() => {
     // Função para extrair os parâmetros da URL
@@ -25,7 +29,11 @@ const Dashboard = () => {
     const { access_token, refresh_token, expires_in }: any = getQueryParams();
 
     if (access_token && refresh_token) {
-      console.log("Tokens recebidos:", { access_token, refresh_token, expires_in });
+      console.log("Tokens recebidos:", {
+        access_token,
+        refresh_token,
+        expires_in,
+      });
       setAccessToken(access_token);
       setRefreshToken(refresh_token);
       setExpiresIn(expires_in);
@@ -42,17 +50,16 @@ const Dashboard = () => {
   const fetchDeactiveUsers = async () => {
     if (!accessToken) {
       setError("Access Token não disponível.");
-      console.error("Access Token não disponível.");
       return;
     }
 
-    setLoading(true);
+    setLoadingFetch(true);
     setError("");
+    setCreateSuccess("");
 
     try {
-      console.log("Buscando usuários deativos com o token:", accessToken);
       const response = await axios.get(
-        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/deactive-users",
+        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/api/deactive-users",
         {
           headers: {
             Authorization: `Zoho-oauthtoken ${accessToken}`,
@@ -60,23 +67,44 @@ const Dashboard = () => {
         }
       );
 
-      console.log("Resposta da API:", response.data);
-      if (response.data && response.data.data) {
-        setUsers(response.data.data); // Ajuste conforme a estrutura da resposta da API
-      } else {
-        console.warn("Estrutura de resposta inesperada:", response.data);
-        setError("Resposta da API não contém dados de usuários.");
-      }
+      setUsers(response.data.data); // Ajuste conforme a estrutura da resposta da API
     } catch (err: any) {
-      console.error("Erro ao buscar usuários deativos:", err);
-      if (err.response) {
-        console.error("Detalhes do erro da API:", err.response.data);
-        setError("Falha ao buscar usuários de ativos: " + (err.response.data.message || "Erro desconhecido"));
-      } else {
-        setError("Erro de rede ou servidor: " + (err.message || "Erro desconhecido"));
-      }
+      console.error("Erro ao buscar usuários deativos:", err.response?.data);
+      setError("Falha ao buscar usuários de ativos.");
     } finally {
-      setLoading(false);
+      setLoadingFetch(false);
+    }
+  };
+
+  const createUser = async () => {
+    if (!accessToken) {
+      setError("Access Token não disponível.");
+      return;
+    }
+
+    setLoadingCreate(true);
+    setError("");
+    setCreateSuccess("");
+
+    try {
+      const response = await axios.post(
+        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/api/create-user",
+        {}, // Corpo vazio, pois os dados são estáticos no backend
+        {
+          headers: {
+            Authorization: `Zoho-oauthtoken ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Usuário criado:", response.data);
+      setCreateSuccess("Usuário criado com sucesso!");
+    } catch (err: any) {
+      console.error("Erro ao criar usuário:", err.response?.data);
+      setError("Falha ao criar usuário.");
+    } finally {
+      setLoadingCreate(false);
     }
   };
 
@@ -94,11 +122,21 @@ const Dashboard = () => {
           <p>
             <strong>Expira em:</strong> {expiresIn} segundos
           </p>
-          <button onClick={fetchDeactiveUsers} disabled={loading}>
-            {loading ? "Carregando..." : "Buscar Usuários Deativos"}
+
+          <button onClick={fetchDeactiveUsers} disabled={loadingFetch}>
+            {loadingFetch ? "Buscando..." : "Buscar Usuários Deativos"}
+          </button>
+
+          <button
+            onClick={createUser}
+            disabled={loadingCreate}
+            style={{ marginLeft: "10px" }}
+          >
+            {loadingCreate ? "Criando..." : "Criar Usuário"}
           </button>
 
           {error && <p style={{ color: "red" }}>{error}</p>}
+          {createSuccess && <p style={{ color: "green" }}>{createSuccess}</p>}
 
           {users.length > 0 ? (
             <div>
