@@ -10,11 +10,10 @@ const Dashboard = () => {
   const [refreshToken, setRefreshToken] = useState("");
   const [expiresIn, setExpiresIn] = useState("");
   const [users, setUsers] = useState([]);
-  const [tokenInfo, setTokenInfo] = useState<any>(null); // Novo estado para informações do token
   const [error, setError] = useState("");
   const [loadingFetch, setLoadingFetch] = useState(false); // Estado para mostrar carregamento ao buscar usuários
-  const [loadingVerify, setLoadingVerify] = useState(false); // Estado para mostrar carregamento ao verificar token
-  const [verifySuccess, setVerifySuccess] = useState(""); // Mensagem de sucesso ao verificar token
+  const [loadingCreate, setLoadingCreate] = useState(false); // Estado para mostrar carregamento ao criar usuário
+  const [createSuccess, setCreateSuccess] = useState(""); // Mensagem de sucesso ao criar usuário
 
   useEffect(() => {
     // Função para extrair os parâmetros da URL
@@ -56,7 +55,7 @@ const Dashboard = () => {
 
     setLoadingFetch(true);
     setError("");
-    setVerifySuccess("");
+    setCreateSuccess("");
 
     try {
       const response = await axios.get(
@@ -77,36 +76,35 @@ const Dashboard = () => {
     }
   };
 
-  // Nova função para verificar o token
-  const verifyToken = async () => {
+  const createUser = async () => {
     if (!accessToken) {
       setError("Access Token não disponível.");
       return;
     }
 
-    setLoadingVerify(true);
+    setLoadingCreate(true);
     setError("");
-    setVerifySuccess("");
-    setTokenInfo(null);
+    setCreateSuccess("");
 
     try {
-      const response = await axios.get(
-        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/api/verify-token",
+      const response = await axios.post(
+        "https://3bf7-2804-2ee8-82-c8c6-414f-cf2f-f426-961e.ngrok-free.app/api/create-user",
+        {}, // Corpo vazio, pois os dados são estáticos no backend
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Zoho-oauthtoken ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
-      console.log("Informações do Token:", response.data);
-      setTokenInfo(response.data);
-      setVerifySuccess("Token verificado com sucesso!");
+      console.log("Usuário criado:", response.data);
+      setCreateSuccess("Usuário criado com sucesso!");
     } catch (err: any) {
-      console.error("Erro ao verificar o token:", err.response?.data);
-      setError("Falha ao verificar o token.");
+      console.error("Erro ao criar usuário:", err.response?.data);
+      setError("Falha ao criar usuário.");
     } finally {
-      setLoadingVerify(false);
+      setLoadingCreate(false);
     }
   };
 
@@ -129,39 +127,17 @@ const Dashboard = () => {
             {loadingFetch ? "Buscando..." : "Buscar Usuários Deativos"}
           </button>
 
-          {/* Botão para verificar o token */}
           <button
-            onClick={verifyToken}
-            disabled={loadingVerify}
+            onClick={createUser}
+            disabled={loadingCreate}
             style={{ marginLeft: "10px" }}
           >
-            {loadingVerify ? "Verificando..." : "Verificar Token"}
+            {loadingCreate ? "Criando..." : "Criar Usuário"}
           </button>
 
           {error && <p style={{ color: "red" }}>{error}</p>}
-          {verifySuccess && <p style={{ color: "green" }}>{verifySuccess}</p>}
+          {createSuccess && <p style={{ color: "green" }}>{createSuccess}</p>}
 
-          {/* Exibir informações do token */}
-          {tokenInfo && (
-            <div>
-              <h3>Informações do Token:</h3>
-              <p>
-                <strong>Client ID:</strong> {tokenInfo.client_id}
-              </p>
-              <p>
-                <strong>Expires In:</strong> {tokenInfo.expires_in} segundos
-              </p>
-              <p>
-                <strong>Scopes:</strong> {tokenInfo.scope}
-              </p>
-              <p>
-                <strong>Usuário:</strong> {tokenInfo.user?.name} (
-                {tokenInfo.user?.email})
-              </p>
-            </div>
-          )}
-
-          {/* Se quiser manter a listagem de usuários deativos */}
           {users.length > 0 ? (
             <div>
               <h3>Usuários Deativos:</h3>
