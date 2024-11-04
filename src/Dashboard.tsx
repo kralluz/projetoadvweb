@@ -88,16 +88,8 @@ const Dashboard = () => {
 
     try {
       const response = await axios.post(
-        "https://4800-2804-2ee8-82-c8c6-f8df-e0b5-4a76-ce78.ngrok-free.app/api/create-user",
-        {}, // Corpo vazio, pois os dados são estáticos no backend
-        {
-          headers: {
-            Authorization: `Zoho-oauthtoken ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
+        "https://4800-2804-2ee8-82-c8c6-f8df-e0b5-4a76-ce78.ngrok-free.app/createUser",
       );
-
       console.log("Usuário criado:", response.data);
       setCreateSuccess("Usuário criado com sucesso!");
     } catch (err: any) {
